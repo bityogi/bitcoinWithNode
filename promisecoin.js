@@ -14,7 +14,7 @@ var bip100re = new RegExp('BIP100|BV[0-9]{7}');
 var bip100Support = 0;
 var notBip100Support = 0;
 var blocksChecked = 0;
-var blocksToLoop = 10;
+var blocksToLoop = process.argv[2] || 20;
 var previousBlockHash = '';
 
 function getBestBlock() {
@@ -58,25 +58,27 @@ function getRawTransaction(transactionId) {
 }
 
 function checkCoinBaseValue(transaction) {
+  var defer = Q.defer();
   var coinbaseValue = transaction.vin[0].coinbase;
-  console.log('coinbaseValue:', coinbaseValue);
+  //console.log('coinbaseValue:', coinbaseValue);
   var coinbaseValueInBinary = new Buffer(coinbaseValue, 'hex')
   //console.log('coinbase binary field:', coinbaseValueInBinary);
 
   if (bip100re.test(coinbaseValueInBinary)) {
     console.log('test is positive. BIP100 supported');
-    return true;
+    defer.resolve(true);
   } else {
     console.log('NACK. No support here.');
-    return false;
+    defer.resolve(false);
   }
 
+  return defer.promise;
 }
 
 function getBIPSupport() {
 
   function recurseThroughBlocks(hash) {
-    var defer = Q.defer();
+   var defer = Q.defer();
 
     getBlock(hash)
       .then(function(blockinfo) {
@@ -86,19 +88,23 @@ function getBIPSupport() {
         return getRawTransaction(blockinfo.coinbaseTransactionId);
       })
       .then(function(transaction) {
-        if (checkCoinBaseValue(transaction)) {
+
+        return checkCoinBaseValue(transaction)
+
+      }).then(function(support) {
+        if (support) {
           bip100Support++;
         } else {
           notBip100Support++;
         }
-      }).then(function() {
         blocksChecked++
         if (blocksChecked < blocksToLoop) {
           console.log('blocks checked:', blocksChecked);
-          recurseThroughBlocks(previousBlockHash);
+          return defer.resolve(recurseThroughBlocks(previousBlockHash));
         } else if (blocksChecked == blocksToLoop) {
           console.log('COMPLETED BLOCK CHECKS!!!');
-          defer.resolve(blocksChecked);
+          defer.resolve({ 'blocksChecked' : blocksChecked, 'supportBIP': bip100Support, 'NoSupportBIP': notBip100Support });
+          return blocksChecked;
         }
       });
 
@@ -109,11 +115,10 @@ function getBIPSupport() {
   getBestBlock()
     .then(function(hash) {
       return recurseThroughBlocks(hash);
-      console.log('after the recursion');
+
     })
     .then(function(value) {
-      console.log('NEXT PROMISE AFTER RECURSION!!!');
-      console.log('checked:', value);
+      console.log('RESULTS:', value);
     })
     .catch(function(err) {
       console.log('error:', err);
