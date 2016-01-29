@@ -23,13 +23,13 @@ client.getBlockchainInfo(function(err, data) {
 
       var block = latestBlock
 
-      for (var i = 0; i < 1; i++) {
+      for (var i = 0; i < 100; i++) {
         client.getBlock(block, function(err, blockData) {
 
           if (err) throw err;
 
           console.log('block:', block);
-          console.log('blockdata:', blockData);
+          //console.log('blockdata:', blockData);
 
           block = blockData.previousblockhash;
           var coinbaseTransactionId = blockData.tx[0];
@@ -38,12 +38,12 @@ client.getBlockchainInfo(function(err, data) {
           client.getRawTransaction(coinbaseTransactionId, 1, function(err, coinbaseTransaction) {
             if (err) throw err;
 
-            console.log('coinbaseTransaction:', coinbaseTransaction);
+            //console.log('coinbaseTransaction:', coinbaseTransaction);
             var coinbaseField = coinbaseTransaction.vin[0].coinbase;
             console.log('coinbase field:', coinbaseField);
 
             var coinbaseFieldInBinary = new Buffer(coinbaseField, 'hex')
-            console.log('coinbase binary field:', coinbaseFieldInBinary);
+            //console.log('coinbase binary field:', coinbaseFieldInBinary);
 
             if (bip100re.test(coinbaseFieldInBinary)) {
               console.log('test is positive. BIP100 supported');

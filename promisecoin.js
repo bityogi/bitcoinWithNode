@@ -76,7 +76,7 @@ function checkCoinBaseValue(transaction) {
 function getBIPSupport() {
 
   function recurseThroughBlocks(hash) {
-
+    var defer = Q.defer();
 
     getBlock(hash)
       .then(function(blockinfo) {
@@ -96,15 +96,24 @@ function getBIPSupport() {
         if (blocksChecked < blocksToLoop) {
           console.log('blocks checked:', blocksChecked);
           recurseThroughBlocks(previousBlockHash);
+        } else if (blocksChecked == blocksToLoop) {
+          console.log('COMPLETED BLOCK CHECKS!!!');
+          defer.resolve(blocksChecked);
         }
       });
+
+      return defer.promise;
 
   }
 
   getBestBlock()
     .then(function(hash) {
-      var checked = recurseThroughBlocks(hash);
-      console.log('checked:', checked);
+      return recurseThroughBlocks(hash);
+      console.log('after the recursion');
+    })
+    .then(function(value) {
+      console.log('NEXT PROMISE AFTER RECURSION!!!');
+      console.log('checked:', value);
     })
     .catch(function(err) {
       console.log('error:', err);
