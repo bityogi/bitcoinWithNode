@@ -9,6 +9,7 @@
   "author": "bityogi",
   "license": "ISC",
   "dependencies": {
+    "bigi": "^1.4.1",
     "bitcoin": "^3.0.1",
     "bitcoinjs-lib": "^2.1.4",
     "bufferpack": "0.0.6",
