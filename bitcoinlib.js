@@ -1,5 +1,6 @@
 var bitcoin = require('bitcoinjs-lib');
 var bigi = require('bigi');
+var fs = require('fs');
 
 //generating a bitcoin address from a hash
 function generateAddress(stringToHash) {
@@ -20,12 +21,34 @@ function generateAddress(stringToHash) {
 
 }
 
-var stringtoHash = process.argv[2];
+// var stringtoHash = process.argv[2];
+//
+// if (!stringtoHash) {
+//   console.log('No string to hash provided.');
+//   process.exit(0);
+// }
+//console.log('stringHashed:', stringtoHash);
 
-if (!stringtoHash) {
-  console.log('No string to hash provided.');
-  process.exit(0);
+//generateAddress(stringtoHash);
+
+
+function getAddressFromWIF(wif) {
+
+    var keyPair = bitcoin.ECPair.fromWIF(wif);
+    var address = keyPair.getAddress();
+
+    return address;
 }
-console.log('stringHashed:', stringtoHash);
 
-generateAddress(stringtoHash);
+
+
+
+function getWIFFromKeyFile() {
+  var keyInfo = JSON.parse(fs.readFileSync('testnet.key'));
+
+  return keyInfo;
+}
+
+var keyInfo = getWIFFromKeyFile() {
+  console.log(keyInfo);
+}
